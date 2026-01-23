@@ -21,7 +21,7 @@ import 'pages/receiver_page.dart';
 import 'pages/sender_page.dart';
 import 'pages/settings_page.dart';
 import 'styles/roc_colors.dart';
-import 'utils/roc_keys.dart'; // Main screen class implementation - Screen layer.
+import 'utils/roc_keys.dart';
 
 class MainScreen extends StatefulWidget {
   // Controls the appearance of the floating test button

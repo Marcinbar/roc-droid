@@ -32,7 +32,7 @@ class SshStatusText extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Text(
-        'SSH', // zamiast ikony
+        'SSH',
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.bold,

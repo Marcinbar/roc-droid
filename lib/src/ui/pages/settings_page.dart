@@ -44,7 +44,6 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     _loadSettings();
 
-    // Listener dla utraty fokusu portów
     _sourcePortFocus.addListener(() {
       if (!_sourcePortFocus.hasFocus) _validatePort(_sourcePortController, 10001);
     });

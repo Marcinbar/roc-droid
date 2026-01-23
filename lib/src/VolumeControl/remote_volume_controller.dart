@@ -68,7 +68,6 @@ class RemoteVolumeController {
     }
   }
 
-  /// Zamknięcie persistent session
   Future<void> disconnect() async {
     try {
       _disposed = true;
@@ -78,14 +77,12 @@ class RemoteVolumeController {
     _updateStatus(SSHStatus.disconnected);
   }
 
-  /// Wrapper autoreconnect
   Future<void> _ensureConnected() async {
     if (_client != null) return;
     _updateStatus(SSHStatus.connecting);
     await connect();
   }
 
-  /// Wrapper zabezpieczający komendy SSH z retry w tle
   Future<T> _runWithRetry<T>(Future<T> Function() action) async {
     int attempt = 0;
 

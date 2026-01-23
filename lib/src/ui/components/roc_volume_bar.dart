@@ -28,7 +28,6 @@ class VolumeBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Ikonka głośnika / mute
           IconButton(
             icon: Icon(
               isMuted ? Icons.volume_off : Icons.volume_up,
@@ -37,7 +36,6 @@ class VolumeBar extends StatelessWidget {
             onPressed: onMuteToggle,
           ),
 
-          // Tekst procentowy
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Text(
@@ -46,7 +44,6 @@ class VolumeBar extends StatelessWidget {
             ),
           ),
 
-          // Suwak
           Expanded(
             child: SliderTheme(
               data: SliderTheme.of(context).copyWith(
