@@ -13,6 +13,7 @@ class RocSnackbar {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Icon(
               Icons.error,
@@ -23,6 +24,7 @@ class RocSnackbar {
               child: Text(
                 message,
                 style: Theme.of(context).textTheme.bodyMedium,
+                softWrap: true,
               ),
             ),
           ],

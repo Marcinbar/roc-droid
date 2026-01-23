@@ -1,27 +1,33 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../VolumeControl/hardware_buttons.dart';
+import '../VolumeControl/remote_volume_controller.dart';
+import '../VolumeControl/ssh_status.dart';
+import '../VolumeControl/volume_control_manager.dart';
 import '../dto.dart';
 import '../model.dart';
 import 'components/roc_snackbar.dart';
+import 'components/roc_ssh_status_icon.dart';
+import 'components/roc_volume_bar.dart';
 import 'fragments/roc_bottom_navigation_bar.dart';
 import 'localization/app_localizations.g.dart';
 import 'pages/about_page.dart';
 import 'pages/receiver_page.dart';
 import 'pages/sender_page.dart';
+import 'pages/settings_page.dart';
 import 'styles/roc_colors.dart';
-import 'utils/roc_keys.dart';
+import 'utils/roc_keys.dart'; // Main screen class implementation - Screen layer.
 
-// Main screen class implementation - Screen layer.
 class MainScreen extends StatefulWidget {
   // Controls the appearance of the floating test button
   final bool _addTestButton = false;
   final ModelRoot _modelRoot;
-
   const MainScreen({required ModelRoot modelRoot}) : _modelRoot = modelRoot;
-
   @override
   State<MainScreen> createState() => _MainScreenState(
         addTestButton: _addTestButton,
@@ -34,7 +40,7 @@ class _MainScreenState extends State<MainScreen> {
   final ModelRoot _modelRoot;
   final List<Widget> _pages;
   int _selectedPage = 0;
-
+  late VolumeControlManager _volumeManager;
   _MainScreenState({
     required bool addTestButton,
     required ModelRoot modelRoot,
@@ -58,31 +64,119 @@ class _MainScreenState extends State<MainScreen> {
       RocSnackbar.showMessage(context: context, message: message);
     });
   }
-
   void _onTabTapped(int index) {
     setState(() {
       _selectedPage = index;
     });
   }
 
+  Future<void> _onSettingsClosed() async {
+    await _volumeManager.reloadSettings();
+    _initHardwareButtons();
+  }
+
+  RemoteVolumeController? remoteVolume;
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_init());
+  }
+
+  Future<void> _init() async {
+    final prefs = await SharedPreferences.getInstance();
+    final store = VolumeStore();
+    remoteVolume = RemoteVolumeController(
+      store: store,
+      host: prefs.getString('conn_host') ?? '192.168.0.1',
+      port: prefs.getInt('conn_port') ?? 22,
+      username: prefs.getString('conn_user') ?? 'admin',
+      password: prefs.getString('conn_password') ?? '',
+      onReconnectFailed: () {
+        RocSnackbar.showMessage(
+          context: context,
+          message: 'SSH reconnect failed!',
+        );
+      },
+    );
+
+    _volumeManager = VolumeControlManager(
+      remoteVolume: remoteVolume!,
+      store: store,
+    );
+    await _volumeManager.init();
+    _initHardwareButtons();
+    if (mounted) setState(() {});
+  }
+
+  void _initHardwareButtons() {
+    HardwareButtons.init(
+      onVolUpDown: () {
+        _volumeManager.onVolumeUpPressed();
+      },
+      onVolUpUp: () {
+        _volumeManager.onVolumeUpReleased();
+      },
+      onVolDownDown: () {
+        _volumeManager.onVolumeDownPressed();
+      },
+      onVolDownUp: () {
+        _volumeManager.onVolumeDownReleased();
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    remoteVolume?.disconnect();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (remoteVolume == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return DefaultTabController(
       initialIndex: 0,
       length: 2,
       child: Scaffold(
-        appBar: _AppBar(context, _modelRoot),
-        body: Center(child: _pages.elementAt(_selectedPage)),
-        bottomNavigationBar: Observer(
-          builder: (_) => RocBottomNavigationBar(
-            context: context,
-            selectedPage: _selectedPage,
-            onTabTapped: _onTabTapped,
-            receiverIsStarted: _modelRoot.receiver.isStarted,
-            senderIsStarted: _modelRoot.sender.isStarted,
-          ),
+        appBar: AppBarWithSSH(
+          modelRoot: _modelRoot,
+          onSettingsClosed: _onSettingsClosed,
+          volumeManager: _volumeManager,
         ),
-        // Test floating action button
+        body: Center(
+          child: _pages.elementAt(_selectedPage),
+        ),
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Observer(
+              builder: (_) {
+                if (!_volumeManager.canUseRemoteVolume) {
+                  return const SizedBox.shrink();
+                }
+                return VolumeBar(
+                  volume: _volumeManager.store.volume,
+                  isMuted: _volumeManager.isMuted,
+                  onChanged: (v) => _volumeManager.setVolume(v),
+                  onMuteToggle: () async => await _volumeManager.toggleMute(),
+                );
+              },
+            ),
+            Observer(
+              builder: (_) => RocBottomNavigationBar(
+                context: context,
+                selectedPage: _selectedPage,
+                onTabTapped: _onTabTapped,
+                receiverIsStarted: _modelRoot.receiver.isStarted,
+                senderIsStarted: _modelRoot.sender.isStarted,
+              ),
+            ),
+          ],
+        ),
         floatingActionButton:
             _addTestButton ? _TestFloatingButton(_modelRoot) : null,
         resizeToAvoidBottomInset: false,
@@ -91,37 +185,76 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-/// Roc's custom basic application bar.
-class _AppBar extends AppBar {
-  _AppBar(BuildContext context, ModelRoot modelRoot)
-      : super(
-          title: Text(
-            AppLocalizations.of(context)!.appTitle,
-            style: Theme.of(context).textTheme.titleMedium,
+class AppBarWithSSH extends StatelessWidget implements PreferredSizeWidget {
+  final ModelRoot modelRoot;
+  final VoidCallback onSettingsClosed;
+  final VolumeControlManager volumeManager;
+
+  const AppBarWithSSH({
+    super.key,
+    required this.modelRoot,
+    required this.onSettingsClosed,
+    required this.volumeManager,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Observer(
+      builder: (_) => AppBar(
+        title: Text(
+          AppLocalizations.of(context)!.appTitle,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        actions: [
+          SshStatusText(status: volumeManager.store.sshStatus),
+          PopupMenuButton<String>(
+            key: RocKeys.sidePaneKey,
+            icon: Icon(Icons.more_vert, color: RocColors.white),
+            onSelected: (value) async {
+              switch (value) {
+                case 'settings':
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsPage(),
+                    ),
+                  );
+                  onSettingsClosed();
+                  break;
+                case 'about':
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AboutPage(modelRoot),
+                    ),
+                  );
+                  break;
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'settings',
+                child: Text('Settings'),
+              ),
+              PopupMenuItem(
+                value: 'about',
+                child: Text('About'),
+              ),
+            ],
           ),
-          actions: [
-            IconButton(
-              key: RocKeys.sidePaneKey,
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AboutPage(modelRoot)),
-                );
-              },
-              icon: Icon(Icons.more_vert),
-              style: ButtonStyle(
-                  iconColor: WidgetStatePropertyAll(RocColors.white)),
-            ),
-          ],
-        );
+        ],
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 /// Roc's custom test floating button widget.
 class _TestFloatingButton extends StatelessWidget {
   final ModelRoot _modelRoot;
-
   _TestFloatingButton(ModelRoot modelRoot) : _modelRoot = modelRoot;
-
   String formRandomIP() {
     return '${Random().nextInt(99)}.${Random().nextInt(99)}.'
         '${Random().nextInt(99)}.${Random().nextInt(99)}';

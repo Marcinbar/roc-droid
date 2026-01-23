@@ -11,6 +11,7 @@ import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,10 +19,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
-
+import io.flutter.plugin.common.MethodChannel
 private const val LOG_TAG = "rocdroid.MainActivity"
 
 class MainActivity : FlutterFragmentActivity() {
+
+    private val CHANNEL = "hardware_buttons"
+
     // main activity is a singleton used by AndroidControllerImpl
     companion object {
         lateinit var instance: MainActivity
@@ -43,6 +47,53 @@ class MainActivity : FlutterFragmentActivity() {
 
     // bridge to invoke dart methods from kotlin
     private lateinit var eventListener: AndroidListener
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        if (event.repeatCount > 0) {
+            // ignorujemy powtórzenia systemowe
+            return true
+        }
+
+        when (keyCode) {
+            KeyEvent.KEYCODE_VOLUME_UP -> {
+                MethodChannel(
+                    flutterEngine!!.dartExecutor.binaryMessenger,
+                    CHANNEL
+                ).invokeMethod("volume_up_down", null)
+                return true
+            }
+
+            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                MethodChannel(
+                    flutterEngine!!.dartExecutor.binaryMessenger,
+                    CHANNEL
+                ).invokeMethod("volume_down_down", null)
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_VOLUME_UP -> {
+                MethodChannel(
+                    flutterEngine!!.dartExecutor.binaryMessenger,
+                    CHANNEL
+                ).invokeMethod("volume_up_up", null)
+                return true
+            }
+
+            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                MethodChannel(
+                    flutterEngine!!.dartExecutor.binaryMessenger,
+                    CHANNEL
+                ).invokeMethod("volume_down_up", null)
+                return true
+            }
+        }
+        return super.onKeyUp(keyCode, event)
+    }
 
     // called at start
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
