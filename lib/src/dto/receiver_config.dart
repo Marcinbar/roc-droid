@@ -4,8 +4,8 @@ part 'receiver_config.freezed.dart';
 part 'receiver_config.g.dart';
 
 /// Receiver configuration.
-@Freezed()
-class ReceiverConfig with _$ReceiverConfig {
+@freezed
+sealed class ReceiverConfig with _$ReceiverConfig {
   const factory ReceiverConfig({
     required int sourcePort,
     required int repairPort,

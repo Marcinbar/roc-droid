@@ -6,8 +6,8 @@ part 'sender_config.freezed.dart';
 part 'sender_config.g.dart';
 
 /// Sender configuration.
-@Freezed()
-class SenderConfig with _$SenderConfig {
+@freezed
+sealed class SenderConfig with _$SenderConfig {
   const factory SenderConfig({
     required CaptureSource captureSource,
     required String receiverIP,
