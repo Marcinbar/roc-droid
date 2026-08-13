@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:mobx/mobx.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './remote_volume_controller.dart';
 import './ssh_status.dart';
+import 'volume_commands.dart';
 
 part 'volume_control_manager.g.dart';
 
@@ -57,6 +57,15 @@ abstract class _VolumeControlManager with Store {
   @action
   Future<void> reloadSettings() async {
     useRemoteVolume = _prefs!.getBool(_keyUseRemoteVolume) ?? false;
+
+    final backend =
+        _prefs!.getString('volume_backend') ?? VolumeBackend.pactl.name;
+
+    remoteVolume.commands =
+    backend == VolumeBackend.wpctl.name
+        ? WpctlVolumeCommands()
+        : PactlVolumeCommands();
+
     if (useRemoteVolume) {
       unawaited(remoteVolume.connect());
     } else {

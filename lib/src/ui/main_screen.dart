@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../VolumeControl/hardware_buttons.dart';
 import '../VolumeControl/remote_volume_controller.dart';
 import '../VolumeControl/ssh_status.dart';
+import '../VolumeControl/volume_commands.dart';
 import '../VolumeControl/volume_control_manager.dart';
 import '../dto.dart';
 import '../model.dart';
@@ -36,6 +37,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  static const _keyVolumeBackend = 'volume_backend';
   final bool _addTestButton;
   final ModelRoot _modelRoot;
   final List<Widget> _pages;
@@ -85,12 +87,20 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
     final store = VolumeStore();
+    final backend =
+        prefs.getString(_keyVolumeBackend) ?? VolumeBackend.pactl.name;
+
+    final commands = backend == VolumeBackend.wpctl.name
+        ? WpctlVolumeCommands()
+        : PactlVolumeCommands();
+
     remoteVolume = RemoteVolumeController(
       store: store,
       host: prefs.getString('conn_host') ?? '192.168.0.1',
       port: prefs.getInt('conn_port') ?? 22,
       username: prefs.getString('conn_user') ?? 'admin',
       password: prefs.getString('conn_password') ?? '',
+      commands: commands,
       onReconnectFailed: () {
         RocSnackbar.showMessage(
           context: context,

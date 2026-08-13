@@ -6,14 +6,13 @@ part of 'receiver_config.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ReceiverConfigImpl _$$ReceiverConfigImplFromJson(Map<String, dynamic> json) =>
-    _$ReceiverConfigImpl(
+_ReceiverConfig _$ReceiverConfigFromJson(Map<String, dynamic> json) =>
+    _ReceiverConfig(
       sourcePort: (json['sourcePort'] as num).toInt(),
       repairPort: (json['repairPort'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$ReceiverConfigImplToJson(
-        _$ReceiverConfigImpl instance) =>
+Map<String, dynamic> _$ReceiverConfigToJson(_ReceiverConfig instance) =>
     <String, dynamic>{
       'sourcePort': instance.sourcePort,
       'repairPort': instance.repairPort,

@@ -6,15 +6,15 @@ part of 'sender_config.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SenderConfigImpl _$$SenderConfigImplFromJson(Map<String, dynamic> json) =>
-    _$SenderConfigImpl(
+_SenderConfig _$SenderConfigFromJson(Map<String, dynamic> json) =>
+    _SenderConfig(
       captureSource: $enumDecode(_$CaptureSourceEnumMap, json['captureSource']),
       receiverIP: json['receiverIP'] as String,
       receiverSourcePort: (json['receiverSourcePort'] as num).toInt(),
       receiverRepairPort: (json['receiverRepairPort'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$SenderConfigImplToJson(_$SenderConfigImpl instance) =>
+Map<String, dynamic> _$SenderConfigToJson(_SenderConfig instance) =>
     <String, dynamic>{
       'captureSource': _$CaptureSourceEnumMap[instance.captureSource]!,
       'receiverIP': instance.receiverIP,

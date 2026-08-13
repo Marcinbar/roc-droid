@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../VolumeControl/volume_commands.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -36,8 +37,11 @@ class _SettingsPageState extends State<SettingsPage> {
   static const _keyPassword = 'conn_password';
   static const _keySourcePort = 'stream_source_port';
   static const _keyRepairPort = 'stream_repair_port';
+  static const _keyVolumeBackend = 'volume_backend';
 
   static const _keyEnableSSHVolume = 'enable_ssh_volume';
+
+  VolumeBackend _volumeBackend =VolumeBackend.pactl;
 
   @override
   void initState() {
@@ -45,10 +49,12 @@ class _SettingsPageState extends State<SettingsPage> {
     _loadSettings();
 
     _sourcePortFocus.addListener(() {
-      if (!_sourcePortFocus.hasFocus) _validatePort(_sourcePortController, 10001);
+      if (!_sourcePortFocus.hasFocus)
+        _validatePort(_sourcePortController, 10001);
     });
     _repairPortFocus.addListener(() {
-      if (!_repairPortFocus.hasFocus) _validatePort(_repairPortController, 10002);
+      if (!_repairPortFocus.hasFocus)
+        _validatePort(_repairPortController, 10002);
     });
   }
 
@@ -71,7 +77,13 @@ class _SettingsPageState extends State<SettingsPage> {
     // Streams
     final sourcePort = _prefs.getInt(_keySourcePort) ?? 10001;
     final repairPort = _prefs.getInt(_keyRepairPort) ?? 10002;
+    final backend =
+        _prefs.getString(_keyVolumeBackend) ?? VolumeBackend.pactl.name;
 
+    _volumeBackend = VolumeBackend.values.firstWhere(
+      (e) => e.name == backend,
+      orElse: () => VolumeBackend.pactl,
+    );
     // Volume control
     _enableSSHVolume = _prefs.getBool(_keyEnableSSHVolume) ?? false;
 
@@ -98,10 +110,12 @@ class _SettingsPageState extends State<SettingsPage> {
     if (port == null || port < 1 || port > 65535) return 'Invalid SSH port';
 
     final srcPort = int.tryParse(_sourcePortController.text.trim());
-    if (srcPort == null || srcPort < 1 || srcPort > 65535) return 'Invalid source stream port';
+    if (srcPort == null || srcPort < 1 || srcPort > 65535)
+      return 'Invalid source stream port';
 
     final repPort = int.tryParse(_repairPortController.text.trim());
-    if (repPort == null || repPort < 1 || repPort > 65535) return 'Invalid repair stream port';
+    if (repPort == null || repPort < 1 || repPort > 65535)
+      return 'Invalid repair stream port';
 
     return null;
   }
@@ -136,13 +150,16 @@ class _SettingsPageState extends State<SettingsPage> {
 
     // save volume control options
     await _prefs.setBool(_keyEnableSSHVolume, _enableSSHVolume);
+    await _prefs.setString(
+        _keyVolumeBackend,
+        _volumeBackend.name);
 
     setState(() => _saving = false);
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Settings saved')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Settings saved')));
     Navigator.pop(context);
   }
 
@@ -184,6 +201,37 @@ class _SettingsPageState extends State<SettingsPage> {
               value: _enableSSHVolume,
               onChanged: (v) => setState(() => _enableSSHVolume = v),
             ),
+            DropdownButtonFormField<VolumeBackend>(
+              value: _volumeBackend,
+              decoration: const InputDecoration(
+                labelText: 'Backend',
+              ),
+              dropdownColor: Colors.white,
+              style: const TextStyle(color: Colors.black),
+              items: const [
+                DropdownMenuItem(
+                  value: VolumeBackend.pactl,
+                  child: Text(
+                    'pactl',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: VolumeBackend.wpctl,
+                  child: Text(
+                    'wpctl',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+              ],
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() {
+                    _volumeBackend = v;
+                  });
+                }
+              },
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: _hostController,
@@ -220,14 +268,18 @@ class _SettingsPageState extends State<SettingsPage> {
             TextField(
               controller: _sourcePortController,
               focusNode: _sourcePortFocus,
-              decoration: const InputDecoration(labelText: 'Source stream port'),
+              decoration: const InputDecoration(
+                labelText: 'Source stream port',
+              ),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),
             TextField(
               controller: _repairPortController,
               focusNode: _repairPortFocus,
-              decoration: const InputDecoration(labelText: 'Repair stream port'),
+              decoration: const InputDecoration(
+                labelText: 'Repair stream port',
+              ),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),

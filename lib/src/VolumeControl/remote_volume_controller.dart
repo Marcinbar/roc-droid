@@ -1,7 +1,7 @@
 import 'package:dartssh2/dartssh2.dart';
-import 'package:flutter/foundation.dart';
 
 import './ssh_status.dart';
+import 'volume_commands.dart';
 
 class RemoteVolumeController {
   final VolumeStore store;
@@ -9,6 +9,7 @@ class RemoteVolumeController {
   final int port;
   final String username;
   final String password;
+  VolumeCommands commands;
 
   SSHClient? _client;
   bool _connecting = false;
@@ -26,6 +27,7 @@ class RemoteVolumeController {
     required this.port,
     required this.username,
     required this.password,
+    required this.commands,
     this.onReconnectFailed,
   });
 
@@ -47,10 +49,12 @@ class RemoteVolumeController {
     _connecting = true;
     _updateStatus(SSHStatus.connecting);
     try {
-      final socket = await SSHSocket.connect(host, port)
-          .timeout(const Duration(seconds: 5), onTimeout: () {
-        throw Exception("SSH connection timeout");
-      });
+      final socket = await SSHSocket.connect(host, port).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          throw Exception("SSH connection timeout");
+        },
+      );
 
       _client = SSHClient(
         socket,
@@ -117,10 +121,10 @@ class RemoteVolumeController {
   Future<void> _setVolumeInternal(int target) async {
     final clamped = target.clamp(0, 100);
     store.setVolume(clamped / 100);
-    await _execPactl('pactl set-sink-volume @DEFAULT_SINK@ $clamped%');
+    await _execCommand(commands.setVolume(clamped));
   }
 
-  Future<void> _execPactl(String command) async {
+  Future<void> _execCommand(String command) async {
     await _runWithRetry(() async {
       final session = await _client!.execute(command);
       await session.stdout.drain();
@@ -132,9 +136,7 @@ class RemoteVolumeController {
 
   Future<int?> getVolume() async {
     return _runWithRetry<int?>(() async {
-      final session = await _client!.execute(
-        "pactl get-sink-volume @DEFAULT_SINK@",
-      );
+      final session = await _client!.execute(commands.getVolume());
 
       final raw = await session.stdout.fold<List<int>>(
         [],
@@ -142,20 +144,16 @@ class RemoteVolumeController {
       );
 
       final output = String.fromCharCodes(raw);
-      final reg = RegExp(r'(\d+)%');
-      final match = reg.firstMatch(output);
-
-      return match != null ? int.tryParse(match.group(1)!) : null;
+      return commands.parseVolume(output);
     });
   }
 
   Future<void> setMute(bool isMuted) async {
-    await _execPactl(
-        'pactl set-sink-mute @DEFAULT_SINK@ ${isMuted ? 'true' : 'false'}');
+    await _execCommand(commands.setMute(isMuted));
   }
 
   /// Toggle mute
   Future<void> toggleMute() async {
-    await _execPactl('pactl set-sink-mute @DEFAULT_SINK@ toggle');
+    await _execCommand(commands.toggleMute());
   }
 }

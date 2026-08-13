@@ -12,28 +12,32 @@ mixin _$Receiver on _Receiver, Store {
   Computed<int>? _$sourcePortComputed;
 
   @override
-  int get sourcePort => (_$sourcePortComputed ??=
-          Computed<int>(() => super.sourcePort, name: '_Receiver.sourcePort'))
-      .value;
+  int get sourcePort => (_$sourcePortComputed ??= Computed<int>(
+    () => super.sourcePort,
+    name: '_Receiver.sourcePort',
+  )).value;
   Computed<int>? _$repairPortComputed;
 
   @override
-  int get repairPort => (_$repairPortComputed ??=
-          Computed<int>(() => super.repairPort, name: '_Receiver.repairPort'))
-      .value;
+  int get repairPort => (_$repairPortComputed ??= Computed<int>(
+    () => super.repairPort,
+    name: '_Receiver.repairPort',
+  )).value;
   Computed<bool>? _$isStartedComputed;
 
   @override
-  bool get isStarted => (_$isStartedComputed ??=
-          Computed<bool>(() => super.isStarted, name: '_Receiver.isStarted'))
-      .value;
+  bool get isStarted => (_$isStartedComputed ??= Computed<bool>(
+    () => super.isStarted,
+    name: '_Receiver.isStarted',
+  )).value;
   Computed<UnmodifiableListView<String>>? _$receiverIPsComputed;
 
   @override
-  UnmodifiableListView<String> get receiverIPs => (_$receiverIPsComputed ??=
-          Computed<UnmodifiableListView<String>>(() => super.receiverIPs,
-              name: '_Receiver.receiverIPs'))
-      .value;
+  UnmodifiableListView<String> get receiverIPs =>
+      (_$receiverIPsComputed ??= Computed<UnmodifiableListView<String>>(
+        () => super.receiverIPs,
+        name: '_Receiver.receiverIPs',
+      )).value;
 
   late final _$_configAtom = Atom(name: '_Receiver._config', context: context);
 
@@ -50,8 +54,10 @@ mixin _$Receiver on _Receiver, Store {
     });
   }
 
-  late final _$_isStartedAtom =
-      Atom(name: '_Receiver._isStarted', context: context);
+  late final _$_isStartedAtom = Atom(
+    name: '_Receiver._isStarted',
+    context: context,
+  );
 
   @override
   bool get _isStarted {
@@ -66,8 +72,10 @@ mixin _$Receiver on _Receiver, Store {
     });
   }
 
-  late final _$_receiverIPsAtom =
-      Atom(name: '_Receiver._receiverIPs', context: context);
+  late final _$_receiverIPsAtom = Atom(
+    name: '_Receiver._receiverIPs',
+    context: context,
+  );
 
   @override
   ObservableList<String> get _receiverIPs {
@@ -82,40 +90,50 @@ mixin _$Receiver on _Receiver, Store {
     });
   }
 
-  late final _$_initAsyncAction =
-      AsyncAction('_Receiver._init', context: context);
+  late final _$_initAsyncAction = AsyncAction(
+    '_Receiver._init',
+    context: context,
+  );
 
   @override
   Future<void> _init() {
     return _$_initAsyncAction.run(() => super._init());
   }
 
-  late final _$requestStartAsyncAction =
-      AsyncAction('_Receiver.requestStart', context: context);
+  late final _$requestStartAsyncAction = AsyncAction(
+    '_Receiver.requestStart',
+    context: context,
+  );
 
   @override
   Future<void> requestStart() {
     return _$requestStartAsyncAction.run(() => super.requestStart());
   }
 
-  late final _$requestStopAsyncAction =
-      AsyncAction('_Receiver.requestStop', context: context);
+  late final _$requestStopAsyncAction = AsyncAction(
+    '_Receiver.requestStop',
+    context: context,
+  );
 
   @override
   Future<void> requestStop() {
     return _$requestStopAsyncAction.run(() => super.requestStop());
   }
 
-  late final _$setSourcePortAsyncAction =
-      AsyncAction('_Receiver.setSourcePort', context: context);
+  late final _$setSourcePortAsyncAction = AsyncAction(
+    '_Receiver.setSourcePort',
+    context: context,
+  );
 
   @override
   Future<void> setSourcePort(int value) {
     return _$setSourcePortAsyncAction.run(() => super.setSourcePort(value));
   }
 
-  late final _$setRepairPortAsyncAction =
-      AsyncAction('_Receiver.setRepairPort', context: context);
+  late final _$setRepairPortAsyncAction = AsyncAction(
+    '_Receiver.setRepairPort',
+    context: context,
+  );
 
   @override
   Future<void> setRepairPort(int value) {

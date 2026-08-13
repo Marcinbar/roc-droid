@@ -12,13 +12,16 @@ mixin _$VolumeControlManager on _VolumeControlManager, Store {
   Computed<bool>? _$canUseRemoteVolumeComputed;
 
   @override
-  bool get canUseRemoteVolume => (_$canUseRemoteVolumeComputed ??=
-          Computed<bool>(() => super.canUseRemoteVolume,
-              name: '_VolumeControlManager.canUseRemoteVolume'))
-      .value;
+  bool get canUseRemoteVolume =>
+      (_$canUseRemoteVolumeComputed ??= Computed<bool>(
+        () => super.canUseRemoteVolume,
+        name: '_VolumeControlManager.canUseRemoteVolume',
+      )).value;
 
-  late final _$useRemoteVolumeAtom =
-      Atom(name: '_VolumeControlManager.useRemoteVolume', context: context);
+  late final _$useRemoteVolumeAtom = Atom(
+    name: '_VolumeControlManager.useRemoteVolume',
+    context: context,
+  );
 
   @override
   bool get useRemoteVolume {
@@ -33,8 +36,10 @@ mixin _$VolumeControlManager on _VolumeControlManager, Store {
     });
   }
 
-  late final _$isMutedAtom =
-      Atom(name: '_VolumeControlManager.isMuted', context: context);
+  late final _$isMutedAtom = Atom(
+    name: '_VolumeControlManager.isMuted',
+    context: context,
+  );
 
   @override
   bool get isMuted {
@@ -49,61 +54,76 @@ mixin _$VolumeControlManager on _VolumeControlManager, Store {
     });
   }
 
-  late final _$initAsyncAction =
-      AsyncAction('_VolumeControlManager.init', context: context);
+  late final _$initAsyncAction = AsyncAction(
+    '_VolumeControlManager.init',
+    context: context,
+  );
 
   @override
   Future<void> init() {
     return _$initAsyncAction.run(() => super.init());
   }
 
-  late final _$reloadSettingsAsyncAction =
-      AsyncAction('_VolumeControlManager.reloadSettings', context: context);
+  late final _$reloadSettingsAsyncAction = AsyncAction(
+    '_VolumeControlManager.reloadSettings',
+    context: context,
+  );
 
   @override
   Future<void> reloadSettings() {
     return _$reloadSettingsAsyncAction.run(() => super.reloadSettings());
   }
 
-  late final _$onVolumeDownAsyncAction =
-      AsyncAction('_VolumeControlManager.onVolumeDown', context: context);
+  late final _$onVolumeDownAsyncAction = AsyncAction(
+    '_VolumeControlManager.onVolumeDown',
+    context: context,
+  );
 
   @override
   Future<void> onVolumeDown() {
     return _$onVolumeDownAsyncAction.run(() => super.onVolumeDown());
   }
 
-  late final _$setVolumeAsyncAction =
-      AsyncAction('_VolumeControlManager.setVolume', context: context);
+  late final _$setVolumeAsyncAction = AsyncAction(
+    '_VolumeControlManager.setVolume',
+    context: context,
+  );
 
   @override
   Future<void> setVolume(double value) {
     return _$setVolumeAsyncAction.run(() => super.setVolume(value));
   }
 
-  late final _$refreshVolumeAsyncAction =
-      AsyncAction('_VolumeControlManager.refreshVolume', context: context);
+  late final _$refreshVolumeAsyncAction = AsyncAction(
+    '_VolumeControlManager.refreshVolume',
+    context: context,
+  );
 
   @override
   Future<void> refreshVolume() {
     return _$refreshVolumeAsyncAction.run(() => super.refreshVolume());
   }
 
-  late final _$toggleMuteAsyncAction =
-      AsyncAction('_VolumeControlManager.toggleMute', context: context);
+  late final _$toggleMuteAsyncAction = AsyncAction(
+    '_VolumeControlManager.toggleMute',
+    context: context,
+  );
 
   @override
   Future<void> toggleMute() {
     return _$toggleMuteAsyncAction.run(() => super.toggleMute());
   }
 
-  late final _$_VolumeControlManagerActionController =
-      ActionController(name: '_VolumeControlManager', context: context);
+  late final _$_VolumeControlManagerActionController = ActionController(
+    name: '_VolumeControlManager',
+    context: context,
+  );
 
   @override
   void onVolumeUpPressed() {
     final _$actionInfo = _$_VolumeControlManagerActionController.startAction(
-        name: '_VolumeControlManager.onVolumeUpPressed');
+      name: '_VolumeControlManager.onVolumeUpPressed',
+    );
     try {
       return super.onVolumeUpPressed();
     } finally {
@@ -114,7 +134,8 @@ mixin _$VolumeControlManager on _VolumeControlManager, Store {
   @override
   void onVolumeUpReleased() {
     final _$actionInfo = _$_VolumeControlManagerActionController.startAction(
-        name: '_VolumeControlManager.onVolumeUpReleased');
+      name: '_VolumeControlManager.onVolumeUpReleased',
+    );
     try {
       return super.onVolumeUpReleased();
     } finally {
@@ -125,7 +146,8 @@ mixin _$VolumeControlManager on _VolumeControlManager, Store {
   @override
   void onVolumeDownPressed() {
     final _$actionInfo = _$_VolumeControlManagerActionController.startAction(
-        name: '_VolumeControlManager.onVolumeDownPressed');
+      name: '_VolumeControlManager.onVolumeDownPressed',
+    );
     try {
       return super.onVolumeDownPressed();
     } finally {
@@ -136,7 +158,8 @@ mixin _$VolumeControlManager on _VolumeControlManager, Store {
   @override
   void onVolumeDownReleased() {
     final _$actionInfo = _$_VolumeControlManagerActionController.startAction(
-        name: '_VolumeControlManager.onVolumeDownReleased');
+      name: '_VolumeControlManager.onVolumeDownReleased',
+    );
     try {
       return super.onVolumeDownReleased();
     } finally {
